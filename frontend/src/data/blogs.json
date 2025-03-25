@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "title": "Durable Webbing Tape",
+    "subtitle": "Designed for comfort and flexibility, our tapes and ropes offer a secure fit without sacrificing ease of wear in belts.",
+    "imageUrl": "https://m.media-amazon.com/images/I/61kC8v2XxkL._AC_UY1100_.jpg"
+  },
+  {
+    "id": 2,
+    "title": "Reinforced Webbing Tape",
+    "subtitle": "Ideal for reinforcing handbag straps, handles that ensures Long-lasting wear and tear resistance.",
+    "date": "5th May 2024",
+    "imageUrl": "https://i.pinimg.com/736x/37/06/5f/37065f47aaae81c5bd232d46672dea97.jpg"
+  },
+  {
+    "id": 3,
+    "title": "Adjustable Hoodie Drawcord",
+    "subtitle": "This durable and versatile drawcord is essential for securing and adjusting of your favorite hoodie.",
+    "date": "21th November 2024",
+    "imageUrl": "https://hips.hearstapps.com/hmg-prod.s3.amazonaws.com/images/drawstring-hoodie-refresh-lead-1675870422.jpg"
+  },
+  {
+    "id": 4,
+    "title": "Lightweight Backpack Webbing",
+    "subtitle": "Designed for minimalist backpackers, this lightweight webbing offers strength and durability without adding unnecessary weight.",
+    "date": "22th November 2024",
+    "imageUrl": "https://static.vecteezy.com/system/resources/previews/010/366/776/non_2x/red-drawstring-bag-realistic-design-vector.jpg"
+  }
+]
