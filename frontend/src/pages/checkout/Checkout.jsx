@@ -149,39 +149,93 @@ const Checkout = () => {
     const navigate = useNavigate();
     const [address, setAddress] = useState('');
     const [phone, setPhone] = useState('');
-    const [location, setLocation] = useState({ lat: 12.9716, lng: 77.5946 });  // Default location (Bangalore)
+    const [location, setLocation] = useState({ lat: 12.9716, lng: 77.5946 });
+    const [errors, setErrors] = useState({
+        address: '',
+        phone: '',
+        location: ''
+    });
+    const [isLocationVerified, setIsLocationVerified] = useState(false);
 
-    const handleAddressChange = (e) => setAddress(e.target.value);
-    const handlePhoneChange = (e) => setPhone(e.target.value);
+    const validatePhoneNumber = (phone) => {
+        // Indian phone number validation (10 digits, optionally starting with +91)
+        const phoneRegex = /^(?:\+91)?[6-9]\d{9}$/;
+        return phoneRegex.test(phone.replace(/\s+/g, ''));
+    };
 
-    // 🟢 Update location based on the entered address
+    const handleAddressChange = (e) => {
+        setAddress(e.target.value);
+        setIsLocationVerified(false); // Reset location verification when address changes
+        setErrors(prev => ({ ...prev, address: '', location: '' }));
+    };
+
+    const handlePhoneChange = (e) => {
+        const value = e.target.value;
+        // Only allow numbers and + symbol
+        if (!/^[0-9+]*$/.test(value)) return;
+        setPhone(value);
+        setErrors(prev => ({ ...prev, phone: '' }));
+    };
+
     const handleLocationUpdate = async () => {
-        if (!address) {
-            alert('Please enter an address.');
+        if (!address.trim()) {
+            setErrors(prev => ({ ...prev, address: 'Please enter an address first' }));
             return;
         }
+
         try {
             const response = await axios.get(
                 `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json`
             );
+            
             if (response.data.length > 0) {
                 const { lat, lon } = response.data[0];
                 setLocation({ lat: parseFloat(lat), lng: parseFloat(lon) });
-                alert('Location updated on map!');
+                setIsLocationVerified(true);
+                setErrors(prev => ({ ...prev, location: '' }));
             } else {
-                alert('Address not found. Please try again.');
+                setErrors(prev => ({ ...prev, location: 'Address not found on map. Please enter a valid address' }));
+                setIsLocationVerified(false);
             }
         } catch (error) {
             console.error('Error fetching location:', error);
-            alert('Failed to fetch location. Please try again later.');
+            setErrors(prev => ({ ...prev, location: 'Failed to verify location. Please try again' }));
+            setIsLocationVerified(false);
         }
     };
 
     const handleConfirmDetails = () => {
-        if (address && phone) {
+        const newErrors = {};
+
+        // Validate phone
+        if (!phone.trim()) {
+            newErrors.phone = 'Phone number is required';
+        } else if (!validatePhoneNumber(phone)) {
+            newErrors.phone = 'Please enter a valid 10-digit Indian phone number';
+        }
+
+        // Validate address and location
+        if (!address.trim()) {
+            newErrors.address = 'Address is required';
+        }
+
+        if (!isLocationVerified) {
+            newErrors.location = 'Please verify your location on the map';
+        }
+
+        setErrors(newErrors);
+
+        // Proceed only if there are no errors
+        if (Object.keys(newErrors).length === 0) {
+            // Store delivery details
+            const deliveryDetails = {
+                address,
+                phone,
+                location,
+                verifiedLocation: isLocationVerified
+            };
+            localStorage.setItem('deliveryDetails', JSON.stringify(deliveryDetails));
             navigate('/payment');
-        } else {
-            alert('Please enter both address and phone number.');
         }
     };
 
@@ -195,26 +249,43 @@ const Checkout = () => {
                     type="text"
                     value={address}
                     onChange={handleAddressChange}
-                    placeholder="Enter your address"
-                    className="border p-2 w-full rounded mb-2"
+                    placeholder="Enter your complete address"
+                    className={`border p-2 w-full rounded mb-2 ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
                 />
-                <button 
-                    onClick={handleLocationUpdate} 
-                    className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 transition duration-200"
-                >
-                    Show on Map
-                </button>
+                {errors.address && (
+                    <p className="text-red-500 text-sm mt-1">{errors.address}</p>
+                )}
+                <div className="flex items-center gap-2">
+                    <button 
+                        onClick={handleLocationUpdate} 
+                        className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 transition duration-200"
+                    >
+                        Verify Location on Map
+                    </button>
+                    {isLocationVerified && (
+                        <span className="text-green-500 flex items-center">
+                            <i className="ri-check-line mr-1"></i> Location Verified
+                        </span>
+                    )}
+                </div>
+                {errors.location && (
+                    <p className="text-red-500 text-sm mt-1">{errors.location}</p>
+                )}
             </div>
             
             <div className="mb-6">
                 <label className="block mb-2 font-medium">Phone Number:</label>
                 <input
-                    type="text"
+                    type="tel"
                     value={phone}
                     onChange={handlePhoneChange}
-                    placeholder="Enter your phone number"
-                    className="border p-2 w-full rounded"
+                    placeholder="Enter 10-digit phone number"
+                    maxLength="13"
+                    className={`border p-2 w-full rounded ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
                 />
+                {errors.phone && (
+                    <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+                )}
             </div>
 
             <div className="mb-6">
@@ -224,7 +295,7 @@ const Checkout = () => {
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     />
                     <Marker position={[location.lat, location.lng]}>
-                        <Popup>Your Location</Popup>
+                        <Popup>Delivery Location</Popup>
                     </Marker>
                 </MapContainer>
             </div>

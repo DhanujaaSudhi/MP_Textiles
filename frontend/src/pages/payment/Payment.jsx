@@ -1,9 +1,13 @@
 import React from "react";
 import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { clearCart } from "../../redux/features/cart/cartSlice";
 
 const Payment = () => {
     const { grandTotal } = useSelector((store) => store.cart);
     const { user } = useSelector((store) => store.auth); // Get logged-in user details
+    const dispatch = useDispatch(); // Add this
+
 
     const makePayment = () => {
         const amountInPaise = Math.round(grandTotal * 100);
@@ -35,6 +39,10 @@ const Payment = () => {
                     const data = await res.json();
                     if (res.ok) {
                         console.log("Payment stored successfully", data);
+
+                        // Clear the cart after successful payment
+                        dispatch(clearCart());
+                        console.log("Payment successful and cart cleared!");
                     } else {
                         console.error("Error storing payment:", data);
                     }
